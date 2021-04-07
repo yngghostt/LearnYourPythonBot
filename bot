@@ -1,0 +1,95 @@
+import telebot
+import sqlite3
+
+date = sqlite3.connect("usersdatabase.db", check_same_thread=False)
+cursor = date.cursor()
+
+
+def create_data():
+    try:
+        cursor.execute("""CREATE TABLE users
+                      (id integer, username text, level integer, marks real)
+                   """)
+        date.commit()
+    except sqlite3.OperationalError:
+        print("База уже создана")
+
+
+def add_user(id, name):
+    if not get_user(id):
+        cursor.execute("""INSERT INTO users
+                          VALUES (?, ?, ?, ?)
+                    """, (id, name, 0, 0))
+        date.commit()
+    else:
+        print("Юзер уже существует")
+
+
+def set_level(id, level):
+    cursor.execute("""UPDATE users
+                      SET level = ?
+                      WHERE id = ?
+               """, (level, id))
+    date.commit()
+
+
+def set_mark(id, mark):
+    cursor.execute("""UPDATE users
+                      SET marks = ?
+                      WHERE id = ?
+               """, (mark, id))
+    date.commit()
+
+
+def delete_user(id):
+    cursor.execute("""DELETE FROM users 
+                      WHERE id=? 
+               """, id)
+    date.commit()
+
+
+def get_user(id):
+    cursor.execute("""SELECT * FROM users WHERE id=?""", [id])
+    return cursor.fetchall()
+
+
+userId = []
+
+create_data()
+
+bot = telebot.TeleBot('1753135807:AAHny8IXYQwV2kZo5R2kdB4dX2Ozfpgylzg')
+
+keyboard1 = telebot.types.ReplyKeyboardMarkup(True, True)
+keyboard1.row('Привет', 'Пока')
+keyboard1.row('Информация о вас', 'База')
+
+
+@bot.message_handler(commands=['start'])
+def start_message(message):
+    add_user(int(message.chat.id), str(message.chat.first_name))
+    userId.append(message.chat.id)
+    print(message.chat)
+    bot.send_message(message.chat.id, 'Привет, ты написал мне /start', reply_markup=keyboard1)
+
+
+@bot.message_handler(commands=['help'])
+def help_message(message):
+    bot.send_message(message.chat.id, 'Моли о помощи.....', reply_markup=keyboard1)
+
+
+@bot.message_handler(content_types=['text'])
+def send_text(message):
+    if message.text == 'Привет':
+        bot.send_message(message.chat.id, 'Привет, ' + str(message.chat.first_name) + "!")
+    elif message.text == 'Пока':
+        bot.send_message(message.chat.id, 'Прощай, ' + str(message.chat.first_name) + "!")
+    elif message.text == 'Информация о вас':
+        bot.send_message(message.chat.id, 'Пользователь ' + str(get_user(message.chat.id)), reply_markup=keyboard1)
+    elif message.text == "База":
+        for id in userId:
+            bot.send_message(message.chat.id, 'Пользователь ' + str(get_user(id)) + '\n', reply_markup=keyboard1)
+    else:
+        bot.send_message(message.chat.id, 'Чиво?')
+
+
+bot.polling()
