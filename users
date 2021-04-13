@@ -1,0 +1,67 @@
+import sqlite3
+
+def connection():
+    base = sqlite3.connect("module.db")
+    return base
+
+
+def createTable(base):
+    cursor = base.cursor()
+    cursor.execute("""CREATE TABLE IF NOT EXISTS users
+                  (id integer, username text, level text)
+               """)
+    base.commit()
+
+
+def addUser(base,id, name):
+    cursor = base.cursor()
+    cursor.execute("""INSERT INTO users
+                      VALUES (?, ?, ?)
+                """, (id, name, "0.0.0"))
+    base.commit()
+
+
+def checkId(base,id):
+    cursor = base.cursor()
+    return cursor.execute("""SELECT EXISTS(SELECT 1 FROM users WHERE id LIKE ?)""", id)
+
+
+def setLevel(base,id, level):
+    cursor = base.cursor()
+    cursor.execute("""UPDATE users
+                      SET level = ?
+                      WHERE id = ?
+               """, (level, id))
+    base.commit()
+
+
+def deleteUser(base,id):
+    cursor = base.cursor()
+    cursor.execute("""DELETE FROM users 
+                      WHERE id=? 
+               """, id)
+    base.commit()
+
+
+def getUser(base,id):
+    cursor = base.cursor()
+    cursor.execute("""SELECT * 
+    FROM users
+     WHERE id=?""", [id])
+    return cursor.fetchone()
+
+
+def checkUser(base,id):
+    if not getUser(base,id):
+        return False
+    return True
+
+
+def iterator(base):
+    cursor = base.cursor()
+    cursor.execute('SELECT * FROM users')
+
+    userlist = cursor.fetchall()
+
+    for user in userlist:
+        print(user)
