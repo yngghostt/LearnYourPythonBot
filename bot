@@ -14,7 +14,7 @@ keyboard_cont_check.row("Меню")
 
 start_menu = "Добро пожаловать в стартовое меню! Для вас доступны следующие варианты: \n1." + \
              str(module.get_message("1.0.0")) \
-             + "\n2." + str(module.get_message("2.0.0")) + "\n3. Продолжить"
+             + "\n2." + str("2.0.0") + "\n3. Продолжить"
 
 
 @bot.message_handler(commands=['start'])
@@ -51,7 +51,7 @@ def course_start(message):
         elif num == 3:
             course_continue(message)
 
-    except Exception:
+    except ValueError as v:
         bot.send_message(message.chat.id, "Я тебя не понял2.")
         menu_message(message)
 
@@ -61,23 +61,23 @@ def course_continue(message):
     if message.text == "Меню":
         menu_message(message)
     elif message.text == "1" or message.text == "2" or message.text == "3" or message.text == "Продолжить":
-        if module.get_message(module.get_user(str(message.chat.id))[2]) == "Ничего не найдено по данному запросу":
+        if module.get_message(module.get_user_level(message.chat.id)) is None:
             bot.send_message(message.chat.id,
                              "Что-ж, вот вы и закончили этот курс! Посмотрите, что еще мы можем вам предложить: ")
             module.set_level(message.chat.id, "1.1.0")
             menu_message(message)
         else:
-            if module.get_answer(module.get_user(str(message.chat.id))[2]) == "-":
+            if module.get_answer(module.get_user_level(str(message.chat.id))) == "-":
                 msg = bot.send_message(message.chat.id,
-                                       module.get_message(module.get_user(str(message.chat.id))[2]),
+                                       module.get_message(module.get_user_level(str(message.chat.id))),
                                        reply_markup=keyboard_cont)
-                lvl = module.get_user(str(message.chat.id))[2].split(".")
+                lvl = module.get_user_level(str(message.chat.id)).split(".")
                 lvl[1] = str(int(lvl[1]) + 1)
                 module.set_level(message.chat.id, lvl[0] + "." + lvl[1] + "." + lvl[2])
                 bot.register_next_step_handler(msg, course_continue)
             else:
                 msg = bot.send_message(message.chat.id,
-                                       module.get_message(module.get_user(str(message.chat.id))[2]),
+                                       module.get_message(module.get_user_level(str(message.chat.id))),
                                        reply_markup=keyboard_cont_check)
                 bot.register_next_step_handler(msg, check_answer)
     else:
@@ -90,14 +90,14 @@ def check_answer(message):
     if message.text == "Меню":
         menu_message(message)
     else:
-        ans = module.get_answer(module.get_user(str(message.chat.id))[2])[0]
+        ans = module.get_answer(module.get_user_level(str(message.chat.id)))
         # lvl = get_level(base, message.chat.id).split(".")
 
         if message.text == ans:
             # lvl[2] = "1"
             # print(get_message(base, ".".join(lvl)))
             msg = bot.send_message(message.chat.id, "Все верно!", reply_markup=keyboard_cont)
-            lvl = module.get_user(str(message.chat.id))[2].split(".")
+            lvl = module.get_user_level(str(message.chat.id)).split(".")
             lvl[1] = str(int(lvl[1]) + 1)
             module.set_level(message.chat.id, lvl[0] + "." + lvl[1] + "." + lvl[2])
             bot.register_next_step_handler(msg, course_continue)
