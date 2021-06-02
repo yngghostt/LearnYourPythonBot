@@ -7,7 +7,7 @@ import pandas
 BDPATH = 'botdb.db'
 
 base = declarative_base()
-engine = create_engine('sqlite:///botbd.db?check_same_thread=False', echo=True)
+engine = create_engine('sqlite:///botdb.db?check_same_thread=False', echo=True)
 session = sessionmaker(bind=engine)()
 
 
@@ -15,7 +15,7 @@ class Users(base):
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True)
-    chat_id = Column(String)
+    chat_id = Column(String, unique=True, nullable=False)
     level = Column(String(20))
     test = Column(String)
 
@@ -60,7 +60,7 @@ def get_user(chat_id):
 
 
 def has_user(chat_id: str) -> bool:
-    is_exists = session.query(exists().where(Users.user_chat_id == str(chat_id))).scalar()
+    is_exists = session.query(exists().where(Users.chat_id == str(chat_id))).scalar()
     return is_exists
 
 
@@ -76,13 +76,27 @@ def set_level(chat_id: str, level: str):
 
 
 def get_message(level: str) -> str:
-    message = session.query(Course.message).filter_by(level=level).one()
-    return message[0]
+    if has_level(level):
+        message = session.query(Course.message).filter_by(level=level).first()
+        return message[0]
+    return None
+
+
+def has_level(level: str) -> bool:
+    is_exists = session.query(exists().where(Course.level == level)).scalar()
+    return is_exists
 
 
 def get_answer(level: str) -> str:
     answer = session.query(Course.answer).filter_by(level=level).one()
     return answer[0]
+
+
+def get_next(level: str) -> str:
+    next_level = session.query(Course.next_level).filter_by(level=level).one()
+    if next_level is None:
+        return next_level
+    return next_level[0].split(',')
 
 
 def has_image(level):
