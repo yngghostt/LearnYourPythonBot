@@ -7,7 +7,7 @@ import pandas
 BDPATH = 'botdb.db'
 
 base = declarative_base()
-engine = create_engine('sqlite:///botdb.db?check_same_thread=False', echo=True)
+engine = create_engine('sqlite:///botdb.db?check_same_thread=False', echo=False)
 session = sessionmaker(bind=engine)()
 
 
@@ -17,7 +17,9 @@ class Users(base):
     id = Column(Integer, primary_key=True)
     chat_id = Column(String, unique=True, nullable=False)
     level = Column(String(20))
-    test = Column(String)
+    course1 = Column(String(20))
+    course2 = Column(String(20))
+    test1 = Column(Integer)
 
 
 class Course(base):
@@ -75,6 +77,29 @@ def set_level(chat_id: str, level: str):
     session.commit()
 
 
+def pass_course(chat_id: str, level: str):
+    user = session.query(Users).filter_by(chat_id=chat_id).first()
+    if level.split('.')[0] == '1':
+        user.course1 = "pass"
+    if level.split('.')[0] == '2':
+        user.course2 = "pass"
+    session.commit()
+
+
+def pass_test1(chat_id: str, mark):
+    user = session.query(Users).filter_by(chat_id=chat_id).first()
+    user.test1 = mark
+    session.commit()
+
+
+def statistics(chat_id: str):
+    user = session.query(Users).filter_by(chat_id=chat_id).first()
+    c1 = user.course1
+    c2 = user.course2
+    t1 = user.test1
+    return [c1, c2, t1]
+
+
 def get_message(level: str) -> str:
     if has_level(level):
         message = session.query(Course.message).filter_by(level=level).first()
@@ -94,16 +119,17 @@ def get_answer(level: str) -> str:
 
 def get_next(level: str) -> str:
     next_level = session.query(Course.next_level).filter_by(level=level).one()
-    if next_level is None:
-        return next_level
-    return next_level[0].split(',')
+    if next_level[0] is None:
+        return None
+    else:
+        return next_level[0].split(',')
 
 
 def has_image(level):
     image = session.query(Course.image).filter_by(level=level).one()
-    return image is None
+    return image[0] is not None
 
 
 def get_image(level: str):
-    pic = open('files/' + level + '.png')
+    pic = open('files/' + level + '.png', 'rb')
     return pic
