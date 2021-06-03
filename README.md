@@ -17,5 +17,12 @@
 ## Интерфейс бота
 Интерфейс бота представлен на картинках ниже.
 
+## ![image](https://user-images.githubusercontent.com/52496357/120659561-27adc880-c48f-11eb-9fbd-10ce6785cdc9.png)
+## ![image](https://user-images.githubusercontent.com/52496357/120659593-309e9a00-c48f-11eb-82a6-f2807dbac449.png)
+
+
 ## Интерфейс инлайн-тестов
 Бот поддерживает набор инлайн-тестов. Они хранятся в отедльной excel-таблице по тем же правилам. Интерфейс представлен на картинке.
+## ![image](https://user-images.githubusercontent.com/52496357/120659463-0fd64480-c48f-11eb-9932-2ed3c831dfff.png)
+
+## ![image](https://user-images.githubusercontent.com/52496357/120659515-1e246080-c48f-11eb-8fae-979865987ec9.png)
